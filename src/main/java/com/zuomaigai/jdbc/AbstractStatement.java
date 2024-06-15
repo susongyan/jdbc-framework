@@ -19,6 +19,10 @@ public abstract class AbstractStatement implements Statement {
     protected ResultSet resultSet;
     protected boolean closed;
 
+    public Statement getInnerStatement() {
+        return this.innerStatement;
+    }
+
     @Override
     public int getMaxFieldSize() throws SQLException {
         return this.maxFieldSize;
@@ -87,12 +91,12 @@ public abstract class AbstractStatement implements Statement {
 
     @Override
     public void cancel() throws SQLException {
-        this.innerStatement.cancel();
+        getInnerStatement().cancel();
     }
 
     @Override
     public SQLWarning getWarnings() throws SQLException {
-        return this.innerStatement.getWarnings();
+        return getInnerStatement().getWarnings();
     }
 
     @Override
@@ -107,12 +111,12 @@ public abstract class AbstractStatement implements Statement {
 
     @Override
     public int getUpdateCount() throws SQLException {
-        return this.innerStatement.getUpdateCount();
+        return getInnerStatement().getUpdateCount();
     }
 
     @Override
     public boolean getMoreResults() throws SQLException {
-        return innerStatement.getMoreResults();
+        return getInnerStatement().getMoreResults();
     }
 
     @Override
@@ -122,12 +126,12 @@ public abstract class AbstractStatement implements Statement {
 
     @Override
     public boolean getMoreResults(int current) throws SQLException {
-        return this.innerStatement.getMoreResults(current);
+        return getInnerStatement().getMoreResults(current);
     }
 
     @Override
     public ResultSet getGeneratedKeys() throws SQLException {
-        return this.innerStatement.getGeneratedKeys();
+        return getInnerStatement().getGeneratedKeys();
     }
 
     @Override
@@ -186,8 +190,8 @@ public abstract class AbstractStatement implements Statement {
         }
 
         try {
-            if (this.innerStatement != null) {
-                this.innerStatement.close();
+            if (getInnerStatement() != null) {
+                getInnerStatement().close();
             }
         } finally {
             this.innerStatement = null;

@@ -190,8 +190,8 @@ public abstract class AbstractStatement implements Statement {
         }
 
         try {
-            if (getInnerStatement() != null) {
-                getInnerStatement().close();
+            if (this.innerStatement != null) {
+                this.innerStatement.close();
             }
         } finally {
             this.innerStatement = null;

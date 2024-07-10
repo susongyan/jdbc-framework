@@ -83,6 +83,14 @@ public abstract class AbstractStatement implements Statement {
         return this.resultSetType;
     }
 
+    /**
+     * for convenient 
+     * @param resultSetHoldability
+     */
+    public void setResultSetHoldability(int resultSetHoldability) {
+        this.resultSetHoldability = resultSetHoldability;
+    }
+
     @Override
     public int getResultSetHoldability() throws SQLException {
         return this.resultSetHoldability;

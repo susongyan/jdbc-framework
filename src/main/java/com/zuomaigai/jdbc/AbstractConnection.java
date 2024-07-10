@@ -22,6 +22,16 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
+        this.autoCommit = autoCommit;
+    }
+
+    @Override
+    public boolean getAutoCommit() throws SQLException {
+        return this.autoCommit;
+    }
+
+    @Override
     public void close() throws SQLException {
         if (this.closed) {
             return;

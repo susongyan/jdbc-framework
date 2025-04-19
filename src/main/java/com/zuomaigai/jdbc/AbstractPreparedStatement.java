@@ -13,7 +13,7 @@ public abstract class AbstractPreparedStatement extends AbstractStatement implem
     protected String[] columnNames;
 
     protected List<Object> parameters = new ArrayList<>();
-    protected List<List<Object>> batchParameters;
+    protected List<List<Object>> batchParameters = new ArrayList<>();
     protected PreparedStatement innerPreparedStatement;
 
     protected AbstractPreparedStatement(String sql) {
@@ -58,12 +58,13 @@ public abstract class AbstractPreparedStatement extends AbstractStatement implem
 
     /**
      * 进一步加工参数后（比如加密处理），并创建真实 preparedStatement后，填充参数
+     *
      * @param parameters
      * @throws SQLException
      */
     protected void replayParameters(List<Object> parameters) throws SQLException {
         for (int i = 1; i <= parameters.size(); i++) {
-            this.innerPreparedStatement.setObject(i, parameters.get(i-1));
+            this.innerPreparedStatement.setObject(i, parameters.get(i - 1));
         }
     }
 
@@ -184,5 +185,22 @@ public abstract class AbstractPreparedStatement extends AbstractStatement implem
     @Override
     public void setNClob(int parameterIndex, NClob value) throws SQLException {
         throw new SQLFeatureNotSupportedException("setNClob(int parameterIndex, NClob value) not support");
+    }
+
+    @Override
+    public void close() throws SQLException {
+        super.close();
+
+        if (this.innerPreparedStatement != null) {
+            try {
+                this.innerPreparedStatement.close();
+            } catch (SQLException e) {
+                // ignore
+            }
+        }
+
+        this.parameters.clear();
+        this.batchParameters.clear();
+        this.innerPreparedStatement = null;
     }
 }

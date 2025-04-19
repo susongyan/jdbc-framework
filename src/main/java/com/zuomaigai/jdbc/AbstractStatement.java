@@ -120,6 +120,14 @@ public abstract class AbstractStatement implements Statement {
         return this.resultSetType;
     }
 
+    /**
+     * for convenient 
+     * @param resultSetHoldability
+     */
+    public void setResultSetHoldability(int resultSetHoldability) {
+        this.resultSetHoldability = resultSetHoldability;
+    }
+
     @Override
     public int getResultSetHoldability() throws SQLException {
         return this.resultSetHoldability;
@@ -227,8 +235,8 @@ public abstract class AbstractStatement implements Statement {
         }
 
         try {
-            if (getInnerStatement() != null) {
-                getInnerStatement().close();
+            if (this.innerStatement != null) {
+                this.innerStatement.close();
             }
         } finally {
             this.innerStatement = null;

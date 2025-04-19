@@ -7,9 +7,15 @@ import java.util.concurrent.Executor;
 
 public abstract class AbstractConnection implements Connection {
 
-    protected boolean closed;
+    protected volatile boolean closed;
     protected Connection innerConnection;
     protected boolean autoCommit = true;
+
+    protected String schema;
+    protected String catalog;
+
+    protected int holdability = -1;
+    protected int transactionIsolation = -1;
 
     public Connection getInnerConnection() {
         return innerConnection;
@@ -31,6 +37,78 @@ public abstract class AbstractConnection implements Connection {
             this.innerConnection.close();
         }
     }
+
+    protected void replayConnectionSettings(Connection connection) throws SQLException {
+        if (!this.autoCommit) {
+            connection.setAutoCommit(false);
+        }
+        
+        if (this.transactionIsolation > -1) {
+            connection.setTransactionIsolation(this.transactionIsolation);
+        }
+
+        if (this.schema != null) {
+            connection.setSchema(this.schema);
+        }
+        if (this.catalog != null) {
+            connection.setCatalog(this.catalog);
+        }
+    }
+
+    @Override
+    public boolean isClosed() throws SQLException {
+        return this.closed;
+    }
+
+    @Override
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
+        this.autoCommit = autoCommit;
+    }
+
+    @Override
+    public boolean getAutoCommit() throws SQLException {
+        return this.autoCommit;
+    }
+
+    @Override
+    public void setSchema(String schema) throws SQLException {
+        this.schema = schema;
+    }
+
+    @Override
+    public String getSchema() throws SQLException {
+        return this.schema;
+    }
+
+   @Override
+   public void setCatalog(String catalog) throws SQLException {
+       this.catalog = catalog;
+   } 
+
+   @Override
+   public String getCatalog() throws SQLException {
+       return this.catalog;
+   }
+
+   @Override
+   public void setHoldability(int holdability) throws SQLException {
+       this.holdability = holdability;
+   }
+
+   @Override
+   public int getHoldability() throws SQLException {
+       return this.holdability;
+   }
+
+   @Override
+   public void setTransactionIsolation(int level) throws SQLException {
+       this.transactionIsolation = level;
+   }
+
+   @Override
+   public int getTransactionIsolation() throws SQLException {
+       return this.transactionIsolation;
+   }
 
     @Override
     public final CallableStatement prepareCall(final String sql) throws SQLException {
@@ -120,5 +198,18 @@ public abstract class AbstractConnection implements Connection {
     @Override
     public final void setClientInfo(final Properties props) {
         throw new UnsupportedOperationException("setClientInfo properties");
+    }
+
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        return iface.isInstance(this);
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        if (isWrapperFor(iface)) {
+            return (T)this;
+        }
+        throw new SQLException(getClass().getName() + " Can not unwrap to " + iface.getName());
     }
 }

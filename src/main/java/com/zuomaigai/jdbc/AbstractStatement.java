@@ -1,6 +1,8 @@
 package com.zuomaigai.jdbc;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractStatement implements Statement {
 
@@ -16,12 +18,47 @@ public abstract class AbstractStatement implements Statement {
     protected int fetchDirection = ResultSet.FETCH_FORWARD;
     protected int maxFieldSize = 0;
 
+    protected List<String> batchSqls;
+
     protected ResultSet resultSet;
     protected boolean closed;
 
     public Statement getInnerStatement() {
         return this.innerStatement;
     }
+
+    public Statement createInternalStatement(Connection connection) throws SQLException {
+        Statement statement = null;
+        if (this.resultSetConcurrency == -1) {
+            statement = connection.createStatement(resultSetType, resultSetConcurrency);
+        } else {
+            statement = connection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
+        }
+        statement.setQueryTimeout(queryTimeout);
+        statement.setFetchSize(fetchSize); 
+        statement.setFetchDirection(fetchDirection);
+        statement.setMaxRows(maxRows);
+        return statement;
+    }
+
+    @Override
+    public void addBatch(String sql) throws SQLException {
+        if (batchSqls == null) {
+            batchSqls = new ArrayList<>();
+        }
+
+        if (sql != null) {
+            batchSqls.add(sql);
+        }
+    }
+
+    @Override
+    public void clearBatch() throws SQLException {
+        if (batchSqls != null) {
+            batchSqls.clear();
+        }
+    }
+
 
     @Override
     public int getMaxFieldSize() throws SQLException {

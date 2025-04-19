@@ -10,8 +10,13 @@ public abstract class AbstractDataSource implements DataSource, AutoCloseable {
 
     private int loginTimeout = 0;
     private PrintWriter out = null;
+    protected String dataSourceName; 
 
-    protected boolean closed;
+    protected volatile boolean closed;
+
+    public String getDataSourceName() {
+        return this.dataSourceName;
+    }
 
     @Override
     public PrintWriter getLogWriter() throws SQLException {

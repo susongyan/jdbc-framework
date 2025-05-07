@@ -29,7 +29,7 @@ public abstract class AbstractStatement implements Statement {
 
     public Statement createInternalStatement(Connection connection) throws SQLException {
         Statement statement = null;
-        if (this.resultSetConcurrency == -1) {
+        if (this.resultSetHoldability == -1) {
             statement = connection.createStatement(resultSetType, resultSetConcurrency);
         } else {
             statement = connection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);

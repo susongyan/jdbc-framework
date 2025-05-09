@@ -1,6 +1,14 @@
 package com.zuomaigai.jdbc;
 
-import java.sql.*;
+import java.sql.Blob;
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.NClob;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLXML;
+import java.sql.Struct;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
@@ -9,6 +17,7 @@ public abstract class AbstractConnection implements Connection {
 
     protected volatile boolean closed;
     protected Connection innerConnection;
+    protected boolean readOnly = false;
     protected boolean autoCommit = true;
 
     protected String schema;
@@ -28,16 +37,6 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public void setAutoCommit(boolean autoCommit) throws SQLException {
-        this.autoCommit = autoCommit;
-    }
-
-    @Override
-    public boolean getAutoCommit() throws SQLException {
-        return this.autoCommit;
-    }
-
-    @Override
     public void close() throws SQLException {
         if (this.closed) {
             return;
@@ -52,7 +51,7 @@ public abstract class AbstractConnection implements Connection {
         if (!this.autoCommit) {
             connection.setAutoCommit(false);
         }
-        
+
         if (this.transactionIsolation > -1) {
             connection.setTransactionIsolation(this.transactionIsolation);
         }
@@ -62,6 +61,10 @@ public abstract class AbstractConnection implements Connection {
         }
         if (this.catalog != null) {
             connection.setCatalog(this.catalog);
+        }
+
+        if (this.readOnly) {
+            connection.setReadOnly(true);
         }
     }
 
@@ -90,35 +93,45 @@ public abstract class AbstractConnection implements Connection {
         return this.schema;
     }
 
-   @Override
-   public void setCatalog(String catalog) throws SQLException {
-       this.catalog = catalog;
-   } 
+    @Override
+    public void setCatalog(String catalog) throws SQLException {
+        this.catalog = catalog;
+    }
 
-   @Override
-   public String getCatalog() throws SQLException {
-       return this.catalog;
-   }
+    @Override
+    public String getCatalog() throws SQLException {
+        return this.catalog;
+    }
 
-   @Override
-   public void setHoldability(int holdability) throws SQLException {
-       this.holdability = holdability;
-   }
+    @Override
+    public void setReadOnly(boolean readOnly) throws SQLException {
+        this.readOnly = readOnly;
+    }
 
-   @Override
-   public int getHoldability() throws SQLException {
-       return this.holdability;
-   }
+    @Override
+    public boolean isReadOnly() throws SQLException {
+        return this.readOnly;
+    }
 
-   @Override
-   public void setTransactionIsolation(int level) throws SQLException {
-       this.transactionIsolation = level;
-   }
+    @Override
+    public void setHoldability(int holdability) throws SQLException {
+        this.holdability = holdability;
+    }
 
-   @Override
-   public int getTransactionIsolation() throws SQLException {
-       return this.transactionIsolation;
-   }
+    @Override
+    public int getHoldability() throws SQLException {
+        return this.holdability;
+    }
+
+    @Override
+    public void setTransactionIsolation(int level) throws SQLException {
+        this.transactionIsolation = level;
+    }
+
+    @Override
+    public int getTransactionIsolation() throws SQLException {
+        return this.transactionIsolation;
+    }
 
     @Override
     public final CallableStatement prepareCall(final String sql) throws SQLException {
@@ -126,12 +139,14 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public final CallableStatement prepareCall(final String sql, final int resultSetType, final int resultSetConcurrency) throws SQLException {
+    public final CallableStatement prepareCall(final String sql, final int resultSetType,
+            final int resultSetConcurrency) throws SQLException {
         throw new SQLFeatureNotSupportedException("prepareCall");
     }
 
     @Override
-    public final CallableStatement prepareCall(final String sql, final int resultSetType, final int resultSetConcurrency, final int resultSetHoldability) throws SQLException {
+    public final CallableStatement prepareCall(final String sql, final int resultSetType,
+            final int resultSetConcurrency, final int resultSetHoldability) throws SQLException {
         throw new SQLFeatureNotSupportedException("prepareCall");
     }
 
@@ -218,7 +233,7 @@ public abstract class AbstractConnection implements Connection {
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         if (isWrapperFor(iface)) {
-            return (T)this;
+            return (T) this;
         }
         throw new SQLException(getClass().getName() + " Can not unwrap to " + iface.getName());
     }

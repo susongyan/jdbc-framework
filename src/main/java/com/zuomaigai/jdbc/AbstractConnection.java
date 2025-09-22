@@ -17,24 +17,26 @@ public abstract class AbstractConnection implements Connection {
     protected int holdability = -1;
     protected int transactionIsolation = -1;
 
-    public Connection getInnerConnection() {
-        return innerConnection;
-    }
-
     public void checkClosed() {
         if (this.closed) {
             throw new JdbcFrameworkException("no operation allowed after datasource closed!");
         }
     }
 
-    @Override
-    public void setAutoCommit(boolean autoCommit) throws SQLException {
-        this.autoCommit = autoCommit;
-    }
+    /**
+     * determine real connection,
+     *  such as  read/writer routing datasource
+     *  or shard datasource connection
+     *
+     * @param sql
+     * @param explicitUpdate
+     * @return
+     * @throws SQLException
+     */
+    public abstract Connection getRealConnection(String sql, boolean explicitUpdate) throws SQLException;
 
-    @Override
-    public boolean getAutoCommit() throws SQLException {
-        return this.autoCommit;
+    public Connection getInnerConnection() {
+        return this.innerConnection;
     }
 
     @Override
@@ -52,7 +54,7 @@ public abstract class AbstractConnection implements Connection {
         if (!this.autoCommit) {
             connection.setAutoCommit(false);
         }
-        
+
         if (this.transactionIsolation > -1) {
             connection.setTransactionIsolation(this.transactionIsolation);
         }
@@ -90,123 +92,158 @@ public abstract class AbstractConnection implements Connection {
         return this.schema;
     }
 
-   @Override
-   public void setCatalog(String catalog) throws SQLException {
-       this.catalog = catalog;
-   } 
-
-   @Override
-   public String getCatalog() throws SQLException {
-       return this.catalog;
-   }
-
-   @Override
-   public void setHoldability(int holdability) throws SQLException {
-       this.holdability = holdability;
-   }
-
-   @Override
-   public int getHoldability() throws SQLException {
-       return this.holdability;
-   }
-
-   @Override
-   public void setTransactionIsolation(int level) throws SQLException {
-       this.transactionIsolation = level;
-   }
-
-   @Override
-   public int getTransactionIsolation() throws SQLException {
-       return this.transactionIsolation;
-   }
+    @Override
+    public void setCatalog(String catalog) throws SQLException {
+        this.catalog = catalog;
+    }
 
     @Override
-    public final CallableStatement prepareCall(final String sql) throws SQLException {
+    public String getCatalog() throws SQLException {
+        return this.catalog;
+    }
+
+    @Override
+    public void setHoldability(int holdability) throws SQLException {
+        this.holdability = holdability;
+    }
+
+    @Override
+    public int getHoldability() throws SQLException {
+        return this.holdability;
+    }
+
+    @Override
+    public void setTransactionIsolation(int level) throws SQLException {
+        this.transactionIsolation = level;
+    }
+
+    @Override
+    public int getTransactionIsolation() throws SQLException {
+        return this.transactionIsolation;
+    }
+
+    @Override
+    public void setReadOnly(boolean readOnly) throws SQLException {
+
+    }
+
+    @Override
+    public boolean isReadOnly() throws SQLException {
+        return false;
+    }
+
+    @Override
+    public Savepoint setSavepoint() throws SQLException {
+        return null;
+    }
+
+    @Override
+    public Savepoint setSavepoint(String name) throws SQLException {
+        return null;
+    }
+
+    @Override
+    public void releaseSavepoint(Savepoint savepoint) throws SQLException {
+
+    }
+
+    @Override
+    public SQLWarning getWarnings() throws SQLException {
+        return null;
+    }
+
+    @Override
+    public void clearWarnings() throws SQLException {
+
+    }
+
+    @Override
+    public CallableStatement prepareCall(String sql) throws SQLException {
         throw new SQLFeatureNotSupportedException("prepareCall");
     }
 
     @Override
-    public final CallableStatement prepareCall(final String sql, final int resultSetType, final int resultSetConcurrency) throws SQLException {
+    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
         throw new SQLFeatureNotSupportedException("prepareCall");
     }
 
     @Override
-    public final CallableStatement prepareCall(final String sql, final int resultSetType, final int resultSetConcurrency, final int resultSetHoldability) throws SQLException {
+    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
         throw new SQLFeatureNotSupportedException("prepareCall");
     }
 
     @Override
-    public final String nativeSQL(final String sql) throws SQLException {
+    public String nativeSQL(String sql) throws SQLException {
         throw new SQLFeatureNotSupportedException("nativeSQL");
     }
 
     @Override
-    public final void abort(final Executor executor) throws SQLException {
+    public void abort(Executor executor) throws SQLException {
         throw new SQLFeatureNotSupportedException("abort");
     }
 
     @Override
-    public final Map<String, Class<?>> getTypeMap() throws SQLException {
+    public Map<String, Class<?>> getTypeMap() throws SQLException {
         throw new SQLFeatureNotSupportedException("getTypeMap");
     }
 
     @Override
-    public final void setTypeMap(final Map<String, Class<?>> map) throws SQLException {
+    public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
         throw new SQLFeatureNotSupportedException("setTypeMap");
     }
 
     @Override
-    public final int getNetworkTimeout() throws SQLException {
+    public int getNetworkTimeout() throws SQLException {
         throw new SQLFeatureNotSupportedException("getNetworkTimeout");
     }
 
     @Override
-    public final void setNetworkTimeout(final Executor executor, final int milliseconds) throws SQLException {
+    public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
         throw new SQLFeatureNotSupportedException("setNetworkTimeout");
     }
 
     @Override
-    public final Clob createClob() throws SQLException {
+    public Clob createClob() throws SQLException {
         throw new SQLFeatureNotSupportedException("createClob");
     }
 
     @Override
-    public final Blob createBlob() throws SQLException {
+    public Blob createBlob() throws SQLException {
         throw new SQLFeatureNotSupportedException("createBlob");
     }
 
     @Override
-    public final NClob createNClob() throws SQLException {
+    public NClob createNClob() throws SQLException {
         throw new SQLFeatureNotSupportedException("createNClob");
     }
 
     @Override
-    public final SQLXML createSQLXML() throws SQLException {
+    public SQLXML createSQLXML() throws SQLException {
         throw new SQLFeatureNotSupportedException("createSQLXML");
     }
 
     @Override
-    public final Struct createStruct(final String typeName, final Object[] attributes) throws SQLException {
+    public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
         throw new SQLFeatureNotSupportedException("createStruct");
     }
 
     @Override
-    public final Properties getClientInfo() throws SQLException {
+    public Properties getClientInfo() throws SQLException {
         throw new SQLFeatureNotSupportedException("getClientInfo");
     }
 
     @Override
-    public final String getClientInfo(final String name) throws SQLException {
+    public String getClientInfo(String name) throws SQLException {
         throw new SQLFeatureNotSupportedException("getClientInfo name");
     }
 
     @Override
-    public final void setClientInfo(final String name, final String value) {
+    public void setClientInfo(String name, String value) {
         throw new UnsupportedOperationException("setClientInfo name value");
     }
 
     @Override
-    public final void setClientInfo(final Properties props) {
+    public void setClientInfo(Properties props) {
         throw new UnsupportedOperationException("setClientInfo properties");
     }
 
@@ -218,7 +255,7 @@ public abstract class AbstractConnection implements Connection {
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         if (isWrapperFor(iface)) {
-            return (T)this;
+            return (T) this;
         }
         throw new SQLException(getClass().getName() + " Can not unwrap to " + iface.getName());
     }

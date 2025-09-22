@@ -18,7 +18,7 @@ public abstract class AbstractStatement implements Statement {
     protected int fetchDirection = ResultSet.FETCH_FORWARD;
     protected int maxFieldSize = 0;
 
-    protected List<String> batchSqls;
+    protected List<String> batchSqls = new ArrayList<>();
 
     protected ResultSet resultSet;
     protected boolean closed;
@@ -29,15 +29,16 @@ public abstract class AbstractStatement implements Statement {
 
     public Statement createInternalStatement(Connection connection) throws SQLException {
         Statement statement = null;
-        if (this.resultSetConcurrency == -1) {
+        if (this.resultSetHoldability == -1) {
             statement = connection.createStatement(resultSetType, resultSetConcurrency);
         } else {
             statement = connection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
         }
         statement.setQueryTimeout(queryTimeout);
-        statement.setFetchSize(fetchSize); 
+        statement.setFetchSize(fetchSize);
         statement.setFetchDirection(fetchDirection);
         statement.setMaxRows(maxRows);
+        this.innerStatement = statement;
         return statement;
     }
 
@@ -110,9 +111,17 @@ public abstract class AbstractStatement implements Statement {
         return this.fetchSize;
     }
 
+    public void setResultSetConcurrency(int resultSetConcurrency) {
+        this.resultSetConcurrency = resultSetConcurrency;
+    }
+
     @Override
     public int getResultSetConcurrency() throws SQLException {
         return this.resultSetConcurrency;
+    }
+
+    public void setResultSetType(int resultSetType) {
+        this.resultSetType = resultSetType;
     }
 
     @Override
@@ -121,7 +130,8 @@ public abstract class AbstractStatement implements Statement {
     }
 
     /**
-     * for convenient 
+     * for convenient
+     *
      * @param resultSetHoldability
      */
     public void setResultSetHoldability(int resultSetHoldability) {
